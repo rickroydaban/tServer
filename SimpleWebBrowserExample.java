@@ -35,76 +35,74 @@ import chrriis.dj.nativeswing.swtimpl.components.WebBrowserFunction;
  * @author Christopher Deckers
  */
 public class SimpleWebBrowserExample {
-  static ActionListener actionListener;
-  static JButton buttonOn, buttonOff;
-  static JPanel powerPanel;
-  static JPanel controlPanel;
-  static JPanel webBrowserPanel;
+  //global static declarations for needed elements
+  static JPanel powerPanel, controlPanel, webBrowserPanel;
   static JTextField statusField, taxiCountField, clientCountField;
+  static JButton buttonOn, buttonOff;
+ 
+  static JWebBrowser webBrowser=null;
+
+  static ActionListener actionListener;
   static double screenWidth, screenHeight;
   static Server server;
+  
   public static JComponent createContent() {
-	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-	screenWidth	 = screenSize.getWidth()-30;
-	screenHeight = screenSize.getHeight()-140;
+	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize(); //manage to get size of the host computer
+	screenWidth	 = screenSize.getWidth()-35; //needed in resizing the preferred width of our embedded website
+	screenHeight = screenSize.getHeight()-140; //needed in resizing the preferred height of you embedded website
 	
-	actionListener = getButtonListener();
-	
-    JPanel contentPane = new JPanel(new BorderLayout());
-    webBrowserPanel = new JPanel(new BorderLayout());
-    webBrowserPanel.setBorder(BorderFactory.createTitledBorder("Server"));
-    final JWebBrowser webBrowser = new JWebBrowser();
-    webBrowser.navigate("http://localhost/thesis/multiplemarkers.html");
-    webBrowser.setBarsVisible(false);
+	actionListener = getButtonListener();  //defines actionlisteners to server control buttons
+
+    webBrowser = new JWebBrowser(); //instantiates a new Java Web Browser
+    webBrowser.navigate("http://localhost/thesis/multiplemarkers.html"); //defines what site to be viewed on the java web browser
+    webBrowser.setBarsVisible(false); //hides urls and other native browser elements
     
-    webBrowser.registerFunction(new WebBrowserFunction("invokeJava") {
-        @Override
-        public Object invoke(JWebBrowser webBrowser, Object... args) {
-          return new Object[] {screenWidth,screenHeight};
-        }
-      });
+    makeWebsiteFunctions();
     
+    JPanel contentPane=new JPanel(new BorderLayout());
+    webBrowserPanel=new JPanel(new BorderLayout());
+    webBrowserPanel.setBorder(BorderFactory.createTitledBorder("Server")); //creates a beveled border
     webBrowserPanel.add(webBrowser, BorderLayout.CENTER);
     webBrowserPanel.setVisible(false);
     contentPane.add(webBrowserPanel, BorderLayout.CENTER);
-    // Create an additional bar allowing to show/hide the menu bar of the web browser.
     
-    buttonOn = new JButton(" Turn On");
-    buttonOff = new JButton("Turn Off");
-	buttonOff.setVisible(false);
-	buttonOn.setVisible(true);
-    
+    buttonOn=new JButton(" Turn On"); 
+	buttonOn.setVisible(true);    
     buttonOn.addActionListener(actionListener);
+
+    buttonOff=new JButton("Turn Off");
+	buttonOff.setVisible(false); 
     buttonOff.addActionListener(actionListener);
-    
-    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
-    powerPanel = new JPanel(new BorderLayout());
+
+    powerPanel=new JPanel(new BorderLayout());
     powerPanel.setPreferredSize(new Dimension(95,30));
-    powerPanel.add(buttonOn,BorderLayout.WEST);
-    powerPanel.add(buttonOff,BorderLayout.EAST);
     powerPanel.setBackground(Color.WHITE);
     powerPanel.setBorder(BorderFactory.createLoweredBevelBorder());
+    powerPanel.add(buttonOn,BorderLayout.WEST);
+    powerPanel.add(buttonOff,BorderLayout.EAST);
   
     //panel for status
-    JLabel statusLabel = new JLabel("Status: ");
+    JLabel statusLabel=new JLabel("Status: ");
     statusLabel.setPreferredSize(new Dimension(70,30));
     statusLabel.setHorizontalAlignment(JLabel.RIGHT);
     statusLabel.setFont(new Font("Calibri",Font.BOLD,15));
+    
     statusField=new JTextField();
     statusField.setEditable(false);
     statusField.setPreferredSize(new Dimension(500,30));
     statusField.setText("Please switch on to start server...");
+    statusField.setFont(new Font("Calibri",Font.PLAIN,15));
+    statusField.setBackground(Color.WHITE);
     statusField.setBorder(BorderFactory.createCompoundBorder(
     		              statusField.getBorder(), 
                           BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-    statusField.setFont(new Font("Calibri",Font.PLAIN,15));
-    statusField.setBackground(Color.WHITE);
     
     //panel for number of taxi on operation
-    JLabel taxiCountLabel = new JLabel("Units: ");
+    JLabel taxiCountLabel=new JLabel("Units: ");
     taxiCountLabel.setPreferredSize(new Dimension(50,30));
     taxiCountLabel.setHorizontalAlignment(JLabel.RIGHT);
     taxiCountLabel.setFont(new Font("Calibri",Font.BOLD,15));
+
     taxiCountField = new JTextField("0");
     taxiCountField.setEditable(false);
     taxiCountField.setPreferredSize(new Dimension(50,30));
@@ -117,6 +115,7 @@ public class SimpleWebBrowserExample {
     clientCountLabel.setPreferredSize(new Dimension(60,30));
     clientCountLabel.setHorizontalAlignment(JLabel.RIGHT);
     clientCountLabel.setFont(new Font("Calibri",Font.BOLD,15));
+    
     clientCountField = new JTextField("0");
     clientCountField.setEditable(false);
     clientCountField.setPreferredSize(new Dimension(50,30));
@@ -124,16 +123,16 @@ public class SimpleWebBrowserExample {
     clientCountField.setFont(new Font("Calibri",Font.PLAIN,14));
     clientCountField.setBackground(Color.WHITE);
 
-    JPanel zoomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
     JButton zoomInButton = new JButton("Zoom In");
     JButton zoomOutButton = new JButton("Zoom Out");
+
+    JPanel zoomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
     zoomPanel.setBackground(Color.WHITE);
     zoomPanel.setBorder(BorderFactory.createLineBorder(Color.decode("#BBBBBB")));
-    
     zoomPanel.add(zoomInButton);
     zoomPanel.add(zoomOutButton);
     
-
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
     buttonPanel.add(powerPanel);
     buttonPanel.add(statusLabel);
     buttonPanel.add(statusField);
@@ -146,8 +145,6 @@ public class SimpleWebBrowserExample {
     controlPanel.add(buttonPanel,BorderLayout.CENTER);
     controlPanel.add(zoomPanel,BorderLayout.EAST);
     contentPane.add(controlPanel, BorderLayout.SOUTH);
-    
-    
     
     return contentPane;
   }
@@ -203,4 +200,15 @@ public class SimpleWebBrowserExample {
 	  
 	  return listener;
   }
+
+  //list of callable functions for the specified website
+  private static void makeWebsiteFunctions(){
+    webBrowser.registerFunction(new WebBrowserFunction("getPreferredDimensions") { //defines a callable function on the specified website
+      @Override
+      public Object invoke(JWebBrowser webBrowser, Object... args) {
+        return new Object[] {screenWidth,screenHeight};
+      }
+    });
+  }
+
 }
