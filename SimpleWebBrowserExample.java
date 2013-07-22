@@ -22,6 +22,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
@@ -38,7 +39,7 @@ public class SimpleWebBrowserExample {
   //global static declarations for needed elements
   static JPanel powerPanel, controlPanel, webBrowserPanel;
   static JTextField statusField, taxiCountField, clientCountField;
-  static JButton buttonOn, buttonOff;
+  static JButton buttonOn, buttonOff, zoomInButton, zoomOutButton;
  
   static JWebBrowser webBrowser=null;
 
@@ -54,7 +55,7 @@ public class SimpleWebBrowserExample {
 	actionListener = getButtonListener();  //defines actionlisteners to server control buttons
 
     webBrowser = new JWebBrowser(); //instantiates a new Java Web Browser
-    webBrowser.navigate("http://localhost/thesis/multiplemarkers.html"); //defines what site to be viewed on the java web browser
+    webBrowser.navigate("http://localhost/thesis/multiplemarkers.php"); //defines what site to be viewed on the java web browser
     webBrowser.setBarsVisible(false); //hides urls and other native browser elements
     
     makeWebsiteFunctions();
@@ -123,8 +124,10 @@ public class SimpleWebBrowserExample {
     clientCountField.setFont(new Font("Calibri",Font.PLAIN,14));
     clientCountField.setBackground(Color.WHITE);
 
-    JButton zoomInButton = new JButton("Zoom In");
-    JButton zoomOutButton = new JButton("Zoom Out");
+    zoomInButton = new JButton("Zoom In");
+    zoomInButton.addActionListener(actionListener);
+    zoomOutButton = new JButton("Zoom Out");
+    zoomOutButton.addActionListener(actionListener);
 
     JPanel zoomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
     zoomPanel.setBackground(Color.WHITE);
@@ -187,13 +190,19 @@ public class SimpleWebBrowserExample {
 			  server = new Server();
 			  new Thread(server).start();
 			  
-			}else{
+			}else if(e.getSource() == buttonOff){
 			  buttonOff.setVisible(false);
 			  buttonOn.setVisible(true);
 			  buttonOn.setBackground(Color.WHITE);
 			  buttonOff.setBackground(Color.GREEN);
 			  powerPanel.setBackground(Color.WHITE);
 			  webBrowserPanel.setVisible(false);
+			
+			}else if(e.getSource() == zoomInButton){
+			  String myLat = JOptionPane.showInputDialog("Lattitude");
+			  String myLng = JOptionPane.showInputDialog("Longitude");
+			  //passing location data to our website
+			  webBrowser.navigate("http://localhost/thesis/multiplemarkers.php?fname=addMarker&arg1="+myLat+"&arg2="+myLng);
 			}
 		}
 	};
@@ -201,7 +210,8 @@ public class SimpleWebBrowserExample {
 	  return listener;
   }
 
-  //list of callable functions for the specified website
+  //we define the functions here that will be used by the website we are using
+  //this will be usedful especially when adding markers on the map
   private static void makeWebsiteFunctions(){
     webBrowser.registerFunction(new WebBrowserFunction("getPreferredDimensions") { //defines a callable function on the specified website
       @Override

@@ -12,7 +12,7 @@ public class Server implements Runnable{
   public IdentityGenerator taxiIdentificator; //global scope for id generator for taxi
     
   @Override
-  public void run() {
+  public void run(){
     try {
       passengerIdentificator = new IdentityGenerator();
       taxiIdentificator=new IdentityGenerator();
