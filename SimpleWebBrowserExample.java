@@ -16,6 +16,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -45,7 +46,8 @@ public class SimpleWebBrowserExample {
 
   static ActionListener actionListener;
   static double screenWidth, screenHeight;
-  static Server server;
+  
+  static double taxiLat, taxiLng;
   
   public static JComponent createContent() {
 	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize(); //manage to get size of the host computer
@@ -157,6 +159,7 @@ public class SimpleWebBrowserExample {
 	//get the user screen resolution
     NativeInterface.open();
     UIUtils.setPreferredLookAndFeel();
+        
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         JFrame frame = new JFrame("DJ Native Swing Test");
@@ -187,8 +190,7 @@ public class SimpleWebBrowserExample {
 			  powerPanel.setBackground(Color.decode("#22AA22"));
 			  webBrowserPanel.setVisible(true);
 			  
-			  server = new Server();
-			  new Thread(server).start();
+			  new Thread(new Server()).start();
 			  
 			}else if(e.getSource() == buttonOff){
 			  buttonOff.setVisible(false);
@@ -197,6 +199,13 @@ public class SimpleWebBrowserExample {
 			  buttonOff.setBackground(Color.GREEN);
 			  powerPanel.setBackground(Color.WHITE);
 			  webBrowserPanel.setVisible(false);
+			  
+			//Closes the server socket
+				try {
+					Server.serverSocket.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 			
 			}else if(e.getSource() == zoomInButton){
 			  String myLat = JOptionPane.showInputDialog("Lattitude");
