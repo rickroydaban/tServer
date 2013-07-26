@@ -135,7 +135,7 @@ public class Server implements Runnable{
 			e.printStackTrace();
 		}
 	  }catch (IOException e) {
-        System.out.println("io exception"+e.getMessage());
+        System.out.println("io exception: "+e.getMessage());
 	  }finally{
 		  try{
 			  if(clientSocket!= null)
