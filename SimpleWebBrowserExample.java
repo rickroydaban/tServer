@@ -93,7 +93,7 @@ public class SimpleWebBrowserExample {
     statusField=new JTextField();
     statusField.setEditable(false);
     statusField.setPreferredSize(new Dimension(500,30));
-    statusField.setText("Please switch on to start server...");
+    statusField.setText("OFFLINE. Please switch on to start server...");
     statusField.setFont(new Font("Calibri",Font.PLAIN,15));
     statusField.setBackground(Color.WHITE);
     statusField.setBorder(BorderFactory.createCompoundBorder(
@@ -208,10 +208,9 @@ public class SimpleWebBrowserExample {
 				}
 			
 			}else if(e.getSource() == zoomInButton){
-			  String myLat = JOptionPane.showInputDialog("Lattitude");
-			  String myLng = JOptionPane.showInputDialog("Longitude");
-			  //passing location data to our website
-			  webBrowser.navigate("http://localhost/thesis/multiplemarkers.php?fname=addMarker&arg1="+myLat+"&arg2="+myLng);
+			  webBrowser.navigate("http://localhost/thesis/multiplemarkers.php?fname=zoomIn");
+			}else if(e.getSource() == zoomOutButton){
+				  webBrowser.navigate("http://localhost/thesis/multiplemarkers.php?fname=zoomOut");
 			}
 		}
 	};

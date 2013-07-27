@@ -6,15 +6,21 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Hashtable;
 
 import javax.swing.SwingUtilities;
 
-import actors.*;
+import actors.MyPassenger;
+import actors.MyTaxi;
 
 public class Server implements Runnable{
   public static ServerSocket serverSocket;
   public static IdentityGenerator taxiIdentificator; //global scope for id generator for taxi
   public IdentityGenerator passengerIdentificator; //global scope for id generator for passengers
+  
+  private Hashtable<Integer, MyPassenger> passengerList;
+  private Hashtable<Integer, MyTaxi> taxiList;
+  
 //  private Database database;
     
   @Override
@@ -22,11 +28,11 @@ public class Server implements Runnable{
     try{
       passengerIdentificator = new IdentityGenerator();
       taxiIdentificator=new IdentityGenerator();
-      serverSocket = new ServerSocket(ApplicationAdapter.SERVERPORT);
+      serverSocket = new ServerSocket(connections.MyConnection.serverPort);
       
       //Initialize database
 //      database = new Database();
-      SimpleWebBrowserExample.statusField.setText("LISTENING TO SERVERPORT: " + ApplicationAdapter.SERVERPORT);
+      SimpleWebBrowserExample.statusField.setText("ONLINE. Listening for Requests... ");
 	}catch (IOException e) {
       System.out.println("FAILED TO LISTEN TO SERVERPORT...");
       e.printStackTrace();
@@ -67,7 +73,7 @@ public class Server implements Runnable{
           
           if(inputObject instanceof MyPassenger){
         	//links to the object data sent by the client connection
-            MyPassenger sp = (MyPassenger) inputObject;
+            MyPassenger passenger = (MyPassenger) inputObject;
             
             //NOTE: No need to create another MyPassenger since the data is already stored in sp
             /*MyPassenger serverPassenger = new MyPassenger(passengerIdentificator.requestId(),
@@ -75,7 +81,8 @@ public class Server implements Runnable{
 						                                  sp.getDesLat(),sp.getDesLng(),
 						                                  sp.getClientName());*/
             
-            sp.setID(passengerIdentificator.requestId());
+            passenger.setID(passengerIdentificator.requestId());
+            passengerList.put(passenger.getID(), passenger); //adds a passenger node to the passenger list
             
             //NOTE: No need for client IP since we will use the "output" variable to send data back to client 
             //sp.setIp(clientSocket.getInetAddress().toString());
@@ -113,7 +120,9 @@ public class Server implements Runnable{
 //            }
             
 //            	database.updateTaxiData(myTaxi);
-            	
+            
+          	myTaxi.id=taxiIdentificator.requestId();
+          	taxiList.put(myTaxi.id, myTaxi);
             //NOTE: No need since the data is already stored in the "st" variable
             /*MyTaxi serverTaxi = new MyTaxi(taxiIdentificator.requestId(),
           		                           st.curLat, st.curLng, 
