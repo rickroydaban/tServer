@@ -190,7 +190,7 @@ public class SimpleWebBrowserExample {
 			  powerPanel.setBackground(Color.decode("#22AA22"));
 			  webBrowserPanel.setVisible(true);
 			  
-			  new Thread(new Server()).start();
+			  new Thread(new ServerThread()).start();
 			  
 			}else if(e.getSource() == buttonOff){
 			  buttonOff.setVisible(false);
@@ -202,7 +202,7 @@ public class SimpleWebBrowserExample {
 			  
 			//Closes the server socket
 				try {
-					Server.serverSocket.close();
+					ServerThread.serverSocket.close();
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
