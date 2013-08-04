@@ -36,7 +36,7 @@ import chrriis.dj.nativeswing.swtimpl.components.WebBrowserFunction;
 /**
  * @author Christopher Deckers
  */
-public class SimpleWebBrowserExample {
+public class ServerMap {
   //global static declarations for needed elements
   static JPanel powerPanel, controlPanel, webBrowserPanel;
   static JTextField statusField, taxiCountField, clientCountField;

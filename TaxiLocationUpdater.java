@@ -11,7 +11,7 @@ public class TaxiLocationUpdater implements Runnable {
 	
 	@Override
 	public void run() {
-		SimpleWebBrowserExample.webBrowser.navigate("http://localhost/thesis/multiplemarkers.php?fname=addMarker&arg1="+taxiLat+"&arg2="+taxiLng);
+		ServerMap.webBrowser.navigate("http://localhost/thesis/multiplemarkers.php?fname=addMarker&arg1="+taxiLat+"&arg2="+taxiLng);
 	}
 
 }

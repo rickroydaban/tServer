@@ -14,21 +14,25 @@ import javax.swing.SwingUtilities;
 
 import actors.MyPassenger;
 import actors.MyTaxi;
+import connections.*;
 
 
 class ConnectionListenerThread implements Runnable {		
     private Socket clientSocket;
+    private MyConnection conn;
 		
-    public ConnectionListenerThread(Socket pClientSocket) {
+    public ConnectionListenerThread(Socket pClientSocket, MyConnection pConn) {
       clientSocket = pClientSocket;
+      conn = pConn;
     }
 		
     @Override
     public void run(){
       try {
     	//manages objects sent by the client connections
+        //NOTE: No need for client IP since we will use the "output" variable to send data back to client 
     	ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
-    	ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
+    	ObjectOutputStream passengerOutSocket = new ObjectOutputStream(clientSocket.getOutputStream());
         
         try{
           Object inputObject = input.readObject(); //must be stored the value here
@@ -37,11 +41,8 @@ class ConnectionListenerThread implements Runnable {
         	//links to the object data sent by the client connection
             MyPassenger passenger = (MyPassenger) inputObject;
             
-            //NOTE: No need for client IP since we will use the "output" variable to send data back to client 
-            //sp.setIp(clientSocket.getInetAddress().toString());
-            
-            int clientCount = Integer.parseInt(SimpleWebBrowserExample.clientCountField.getText());
-            SimpleWebBrowserExample.clientCountField.setText(String.valueOf(++clientCount));
+            int clientCount = Integer.parseInt(ServerMap.clientCountField.getText());
+            ServerMap.clientCountField.setText(String.valueOf(++clientCount));
             
             //Find the nearest taxi and send its information to the passenger
             double shortestDistance = 0, //the shortest distance record within the loop
@@ -69,16 +70,18 @@ class ConnectionListenerThread implements Runnable {
             	  shortestDistance=curDistance; //the current distance is the shortest distance
               
             }
-            
+            //send taxi data to the passenger
             MyTaxi nearestTaxi = ServerThread.taxiList.get(nearestTaxiKey);
-            output.writeObject(nearestTaxi);
+            passengerOutSocket.writeObject(nearestTaxi);
+            passengerOutSocket.flush();
 			
 			//Send passenger data to taxi
-			Socket taxiSocket = new Socket(nearestTaxi.getIP(), connections.MyConnection.serverPort);
-			ObjectOutputStream taxiOutput = new ObjectOutputStream(taxiSocket.getOutputStream());
-			taxiOutput.writeObject(passenger);
-			taxiOutput.close();
-			taxiSocket.close();
+			Socket taxiSocket = new Socket(nearestTaxi.getIP(), conn.getTaxiPort());
+			ObjectOutputStream taxiOutSocket = new ObjectOutputStream(taxiSocket.getOutputStream());
+			taxiOutSocket.writeObject(passenger);
+			taxiOutSocket.flush();
+			taxiOutSocket.close();
+			taxiOutSocket.close();
           }
           
           else{
@@ -86,15 +89,15 @@ class ConnectionListenerThread implements Runnable {
             MyTaxi myTaxi = (MyTaxi) inputObject;
             
             //update the taxi coordinates in the view
-            SimpleWebBrowserExample.taxiLat = myTaxi.getCurLat();
-            SimpleWebBrowserExample.taxiLng  = myTaxi.getCurLng();
+            ServerMap.taxiLat = myTaxi.getCurLat();
+            ServerMap.taxiLng  = myTaxi.getCurLng();
             
             //update number of taxi count in the view
-            int taxiCount = Integer.parseInt(SimpleWebBrowserExample.taxiCountField.getText());
-          	SimpleWebBrowserExample.taxiCountField.setText(String.valueOf(++taxiCount));
+            int taxiCount = Integer.parseInt(ServerMap.taxiCountField.getText());
+          	ServerMap.taxiCountField.setText(String.valueOf(++taxiCount));
           	SwingUtilities.invokeAndWait(new Runnable(){
                 public void run() {
-    		      SimpleWebBrowserExample.webBrowser.navigate("http://localhost/thesis/multiplemarkers.php?fname=addMarker&arg1="+SimpleWebBrowserExample.taxiLat+"&arg2="+SimpleWebBrowserExample.taxiLng);
+    		      ServerMap.webBrowser.navigate("http://localhost/thesis/multiplemarkers.php?fname=addMarker&arg1="+ServerMap.taxiLat+"&arg2="+ServerMap.taxiLng);
                 }
           	});
 
@@ -106,20 +109,16 @@ class ConnectionListenerThread implements Runnable {
           }
           
 		  input.close();
-          output.close();
+          passengerOutSocket.close();
         }catch (ClassNotFoundException e) {
-				  System.out.println("class not found exception"+e.getMessage());
-//		} catch (SQLException e) {
-//			e.printStackTrace();
+        	System.out.println("server class not found exception"+e.getMessage());
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+        	System.out.println("server interrupted exception"+e.getMessage());
 		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+        	System.out.println("server invocation targer exception"+e.getMessage());
 		}
 	  }catch (IOException e) {
-        System.out.println("io exception: "+e.getMessage());
+        System.out.println("server io exception: "+e.getMessage());
 	  }finally{
 		  try{
 			  if(clientSocket!= null)

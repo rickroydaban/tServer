@@ -12,25 +12,24 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Hashtable;
 
-import org.json.JSONObject;
-
 import actors.MyTaxi;
+import connections.*;
 
 public class ServerThread implements Runnable{
   public static ServerSocket serverSocket;
   public static Hashtable<String, MyTaxi> taxiList;
   String jsonText;  
+  MyConnection conn;
 //  private Database database;    
   @Override
   public void run(){
     try{
-      serverSocket = new ServerSocket(connections.MyConnection.serverPort);
+      conn = new MyConnection();	
+      serverSocket = new ServerSocket(conn.getServerPort());
       taxiList=new Hashtable<String, MyTaxi>();
-      //Initialize database
-//      database = new Database();
-
-    InetAddress ip=InetAddress.getLocalHost();
       
+      InetAddress ip=InetAddress.getLocalHost();
+      conn.setServerIp(ip.getHostAddress());
       String url = "http://transphone.freetzi.com/thesis/dbmanager.php?fname=setServerIP&arg1="+ip.getHostAddress();
       InputStream is = new URL(url).openStream();
       try {
@@ -40,8 +39,7 @@ public class ServerThread implements Runnable{
         is.close();
       }      
       
-      
-      SimpleWebBrowserExample.statusField.setText("ONLINE. Listening for Requests... ");
+      ServerMap.statusField.setText("ONLINE. Listening for Requests... ");
 	}catch (IOException e) {
       System.out.println("FAILED TO LISTEN TO SERVERPORT...");
       e.printStackTrace();
@@ -54,13 +52,13 @@ public class ServerThread implements Runnable{
     	System.out.println("Status: System is now ready for incoming connection requests.");
     	Socket clientSocket = serverSocket.accept(); 
     	
-    	new Thread(new ConnectionListenerThread(clientSocket)).start(); //one thread is allocated for every taxi on process
+    	new Thread(new ConnectionListenerThread(clientSocket,conn)).start();
       }catch (IOException e) {
         System.out.println(e.getCause());
 	  }
 	}  
 	//process continues if the server has been established then generate a server-client connection	
-	SimpleWebBrowserExample.statusField.setText("SERVER IS STOPPED!");
+	ServerMap.statusField.setText("SERVER IS STOPPED!");
   }	
   //NOTE: client is a general term as us CLIENT-SERVER connections NOT CLIENT,TAXI,SERVER..
   
