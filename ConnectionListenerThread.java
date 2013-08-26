@@ -5,16 +5,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.Enumeration;
 import java.util.Set;
 
 import javax.swing.SwingUtilities;
 
-import actors.MyPassenger;
-import actors.MyTaxi;
-import connections.*;
+import actors.*;
+import connections.MyConnection;
+import data.TaxiStatus;
 
 
 class ConnectionListenerThread implements Runnable {		
@@ -48,30 +45,32 @@ class ConnectionListenerThread implements Runnable {
             double shortestDistance = 0, //the shortest distance record within the loop
             	   curDistance = 0;      //the distance estimated by comparing the current taxi's location to the client's source location
             
-            String nearestTaxiKey = ""; //the key of the resulting nearest taxi estimation
+            MyTaxi nearestTaxi = null; //the data of the resulting nearest taxi estimation
             
             Set<String> keys = ServerThread.taxiList.keySet(); //get all the keys of the taxi record
             
             //loop to find the nearest taxi
             for(String curKey:keys){
               MyTaxi curTaxi = ServerThread.taxiList.get(curKey);
-              if(shortestDistance==0){
-                shortestDistance= distance( passenger.getSrcLat(),passenger.getSrcLng(), //calculate the distance of the passenger to the current taxi's location
+              if(curTaxi.getStatus() == TaxiStatus.vacant)
+          	  {
+            	  if(shortestDistance==0){
+            		  shortestDistance= distance( passenger.getSrcLat(),passenger.getSrcLng(), //calculate the distance of the passenger to the current taxi's location
                 						    curTaxi.getCurLat(),curTaxi.getCurLng());
-              }else{
-                curDistance = distance( passenger.getSrcLat(),passenger.getSrcLng(),
+            	  }else{
+            		  curDistance = distance( passenger.getSrcLat(),passenger.getSrcLng(),
 					                    curTaxi.getCurLat(),curTaxi.getCurLng());
+            	  }
+              
+            	  if(curDistance==0 || curDistance<shortestDistance)
+            	  {
+            		  nearestTaxi=curTaxi;  
+            		  if(curDistance!=0)
+            			  shortestDistance=curDistance; //the current distance is the shortest distance
+            	  }
               }
-              
-              if(curDistance==0 || curDistance<shortestDistance)
-              	nearestTaxiKey=curKey;  
-
-                if(curDistance!=0)
-            	  shortestDistance=curDistance; //the current distance is the shortest distance
-              
             }
             //send taxi data to the passenger
-            MyTaxi nearestTaxi = ServerThread.taxiList.get(nearestTaxiKey);
             passengerOutSocket.writeObject(nearestTaxi);
             passengerOutSocket.flush();
 			
@@ -87,14 +86,32 @@ class ConnectionListenerThread implements Runnable {
           else{
         	//links to the object data sent by the client(taxi) connection
             MyTaxi myTaxi = (MyTaxi) inputObject;
+            boolean keyFound = ServerThread.taxiList.containsKey(myTaxi.getPlateNumber());
+            
+            if(keyFound)
+            {
+            	MyTaxi curTaxi = ServerThread.taxiList.get(myTaxi.getPlateNumber());
+            	
+            	if(curTaxi.getCurLat() != 0 && curTaxi.getCurLng() != 0)
+            	{
+            		double curDistance = distance(curTaxi.getCurLat(), curTaxi.getCurLng(), myTaxi.getCurLat(), myTaxi.getCurLng());
+            		double distanceTraveled = curTaxi.getDistance() + curDistance;
+            		myTaxi.setDistance(distanceTraveled);
+            	}
+            }
+            
+            else
+            {
+            	//update number of taxi count
+            	int taxiCount = Integer.parseInt(ServerMap.taxiCountField.getText());
+            	ServerMap.taxiCountField.setText(String.valueOf(++taxiCount));
+            }
             
             //update the taxi coordinates in the view
             ServerMap.taxiLat = myTaxi.getCurLat();
             ServerMap.taxiLng  = myTaxi.getCurLng();
             
             //update number of taxi count in the view
-            int taxiCount = Integer.parseInt(ServerMap.taxiCountField.getText());
-          	ServerMap.taxiCountField.setText(String.valueOf(++taxiCount));
           	SwingUtilities.invokeAndWait(new Runnable(){
                 public void run() {
     		      ServerMap.webBrowser.navigate("http://localhost/thesis/multiplemarkers.php?fname=addMarker&arg1="+ServerMap.taxiLat+"&arg2="+ServerMap.taxiLng);

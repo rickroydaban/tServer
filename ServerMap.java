@@ -23,7 +23,6 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
@@ -48,6 +47,7 @@ public class ServerMap {
   static double screenWidth, screenHeight;
   
   static double taxiLat, taxiLng;
+  static boolean isServerThreadRunning = false;
   
   public static JComponent createContent() {
 	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize(); //manage to get size of the host computer
@@ -190,7 +190,11 @@ public class ServerMap {
 			  powerPanel.setBackground(Color.decode("#22AA22"));
 			  webBrowserPanel.setVisible(true);
 			  
-			  new Thread(new ServerThread()).start();
+			  if(!isServerThreadRunning)
+			  {
+				  isServerThreadRunning = true;
+				  new Thread(new ServerThread()).start();
+			  }
 			  
 			}else if(e.getSource() == buttonOff){
 			  buttonOff.setVisible(false);
@@ -201,11 +205,15 @@ public class ServerMap {
 			  webBrowserPanel.setVisible(false);
 			  
 			//Closes the server socket
-				try {
+			  if(isServerThreadRunning)
+			  {
+				  isServerThreadRunning = false;
+				  try {
 					ServerThread.serverSocket.close();
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
+			  }
 			
 			}else if(e.getSource() == zoomInButton){
 			  webBrowser.navigate("http://localhost/thesis/multiplemarkers.php?fname=zoomIn");

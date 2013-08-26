@@ -13,7 +13,7 @@ import java.nio.charset.Charset;
 import java.util.Hashtable;
 
 import actors.MyTaxi;
-import connections.*;
+import connections.MyConnection;
 
 public class ServerThread implements Runnable{
   public static ServerSocket serverSocket;
@@ -46,7 +46,7 @@ public class ServerThread implements Runnable{
     }
     
     //While server socket is not closed
-	while(!serverSocket.isClosed()){
+	while(ServerMap.isServerThreadRunning){
       try{
     	//updates listener for units on operation
     	System.out.println("Status: System is now ready for incoming connection requests.");
